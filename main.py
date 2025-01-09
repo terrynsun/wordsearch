@@ -132,7 +132,8 @@ class Wordlist():
 
         if len(s) > 10:
             print(f"\n& found {len(s)} other words with {word} as substring:")
-            words = ', '.join(s)
+            words = ', '.join([ Color.fmt_substring(result, word, Color.GREEN)
+                               for result in s ])
             print(words)
             return
 
@@ -190,6 +191,16 @@ class Color:
 
         fmtstring = ''.join([ f"\033[{n}m" for n in args ])
         return f"{fmtstring}{s}\033[0m"
+
+    @staticmethod
+    def fmt_substring(s: str, substr: str, *args):
+        index = s.find(substr)
+        length = len(substr)
+
+        prefix = s[:index]
+        suffix = s[index+length:]
+
+        return f"{prefix}{Color.fmt(substr, *args)}{suffix}"
 
     @staticmethod
     def bold(s: str):
