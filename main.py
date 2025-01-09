@@ -112,37 +112,39 @@ class Wordlist():
     # Otherwise, if there's just too many, only give the number of results
     # found.
     def search_substring(self, word: str):
-        s = set()
+        matches = {}
 
         for file in self.filelist:
             filelist = self.data[file]
-            for listword in filelist.keys():
-                if word in listword:
-                    s.add(listword)
+            for k, v in filelist.items():
+                if word in k and v >= 40:
+                    matches[k] = v
 
-        s.discard(word)
+        # Remove original word so we don't print it later
+        if word in matches:
+            del matches[word]
 
-        if len(s) == 0:
+        if len(matches) == 0:
             print('')
             return
 
-        if len(s) > 100:
-            print(f"\n& found {len(s)} other words with {word} as substring")
+        if len(matches) > 100:
+            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring (40+ only)")
             return
 
-        if len(s) > 10:
-            print(f"\n& found {len(s)} other words with {word} as substring:")
+        if len(matches) > 10:
+            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring (40+ only):")
             words = ', '.join([ Color.fmt_substring(result, word, Color.GREEN)
-                               for result in s ])
+                               for result in matches ])
             print(words)
             return
 
         print('-------')
         print('')
 
-        for found_word in s:
-            self.match_exact(found_word, False)
-            print('')
+        results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
+        for word, score in results:
+            print(f"{score} {word} ({len(word)})")
 
     # Searches the given word as exact match first, then search for containing
     # substrings.
@@ -209,6 +211,10 @@ class Color:
     @staticmethod
     def red(s: str):
         return Color.fmt(s, Color.RED)
+
+    @staticmethod
+    def green(s: str):
+        return Color.fmt(s, Color.GREEN)
 
     @staticmethod
     def blue(s: str):

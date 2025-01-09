@@ -6,7 +6,6 @@ go.
 ## Todo
 
 - Split into multiple files. Clean up helper functions.
-- Is it better to print the exact match last?
 
 - Downscore / upscore / write to file
 - Convert personal list to wordlist. Display notes from personal list.
