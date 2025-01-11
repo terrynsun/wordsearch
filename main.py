@@ -2,6 +2,7 @@
 
 import sys
 import cmd
+import math
 from pathlib import Path
 
 class Wordlist():
@@ -134,17 +135,30 @@ class Wordlist():
 
         if len(matches) > 10:
             print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring (40+ only):")
-            words = ', '.join([ Color.fmt_substring(result, word, Color.GREEN)
-                               for result in matches ])
-            print(words)
+            Wordlist.tableize(word, list(matches.keys()))
             return
 
-        print('-------')
         print('')
+        print('-------')
 
         results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
-        for word, score in results:
-            print(f"{score} {word} ({len(word)})")
+        for match, score in results:
+            print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
+
+    @staticmethod
+    def tableize(word, matches, columns=4):
+        chunk_size = math.ceil(len(matches)/columns)
+        columns = [ matches[i*chunk_size:(i+1)*chunk_size] for i in range(0, columns) ]
+        wordlengths = [ [ len(x) for x in col ] for col in columns ]
+        col_lengths = [ max(x)+2 for x in wordlengths ]
+
+        # Justify to column & color original word
+        fmt = lambda s, l: Color.highlight(str.ljust(s, l), word, Color.YELLOW)
+
+        for i in range(0, chunk_size):
+            row_words = [ col[i] for col in columns if len(col) > i ]
+            row = [ fmt(w, l) for (w, l) in zip(row_words, col_lengths) ]
+            print(''.join(row))
 
     # Searches the given word as exact match first, then search for containing
     # substrings.
@@ -195,7 +209,7 @@ class Color:
         return f"{fmtstring}{s}\033[0m"
 
     @staticmethod
-    def fmt_substring(s: str, substr: str, *args):
+    def highlight(s: str, substr: str, *args):
         index = s.find(substr)
         length = len(substr)
 

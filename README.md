@@ -5,11 +5,15 @@ go.
 
 ## Todo
 
+Code:
 - Split into multiple files. Clean up helper functions.
 
+Behavior:
+- Fix ^C behavior: https://stackoverflow.com/a/37380019
+
+New functionality:
 - Downscore / upscore / write to file
 - Convert personal list to wordlist. Display notes from personal list.
-- Fix ^C behavior: https://stackoverflow.com/a/37380019
 
 - What is Peter Broda's wordlist? Can I normalize it with the other ones?
     Why does it have 500k words and how much of it is duplicated?
