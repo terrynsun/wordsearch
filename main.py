@@ -240,7 +240,7 @@ class Color:
 
 class Shell(cmd.Cmd):
     intro = 'Welcome.'
-    prompt = Color.blue(Color.bold('>>> '))
+    prompt = Color.blue(Color.bold('»»» '))
     file = None
 
     def __init__(self, wordlist: Wordlist):
