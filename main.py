@@ -5,17 +5,12 @@ import cmd
 import math
 from pathlib import Path
 
+import util
+
 class Wordlist():
     def __init__(self):
         self.data = {}
         self.filelist = []
-
-    # Normalize words, i.e. lowercase and strip spaces.
-    @staticmethod
-    def normalize(word: str):
-        word = word.lower()
-        word = word.replace(' ', '')
-        return word
 
     @staticmethod
     def parse_wordlist_file(path):
@@ -163,7 +158,7 @@ class Wordlist():
     # Searches the given word as exact match first, then search for containing
     # substrings.
     def query(self, word):
-        normalized_word = Wordlist.normalize(word)
+        normalized_word = util.normalize(word)
 
         self.match_exact(normalized_word, True)
 
