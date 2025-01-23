@@ -21,8 +21,16 @@ class Wordlist():
         with open(path) as f:
             for line in f:
                 # Fails if a file doesn't contain this format.
-                word, score = line.strip().split(';')
-                normalized_word = Wordlist.normalize(word)
+                split = line.strip().split(';')
+                if len(split) < 2:
+                    print("invalid wordlist line:", line)
+                    continue
+
+                word = split[0]
+                score = split[1]
+                # Currently dropping any comments
+
+                normalized_word = util.normalize(word)
                 words[normalized_word] = int(score)
 
         return name, words
