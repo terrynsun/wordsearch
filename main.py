@@ -62,7 +62,7 @@ class Wordlist():
 
         # We want to search wordlists in a specific order to handle overrides.
         # Special case STWL so it's lowest priority.
-        self.filelist.sort(key=lambda x: '0' if x == 'spreadthewordlist.txt' else x)
+        self.filelist.sort()
 
         print('Files loaded, highest precedence last:')
         for f in self.filelist:
