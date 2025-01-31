@@ -3,6 +3,8 @@
 import sys
 import cmd
 import math
+import re
+
 from pathlib import Path
 
 import util
@@ -115,13 +117,25 @@ class Wordlist():
     # of them. Otherwise, if there's a medium number of results, print them.
     # Otherwise, if there's just too many, only give the number of results
     # found.
-    def search_substring(self, word: str):
+    def search_substring(self, word: str, score_threshold: int=40):
+        substring_match_fn = lambda x: word in x
+
+        self.search(word, substring_match_fn, score_threshold)
+
+    # Regex search using Python's regex search engine
+    def search_regex(self, regex: str, score_threshold: int=40):
+        compiled_regex = re.compile(regex)
+        regex_match_fn = lambda x: compiled_regex.match(x)
+
+        self.search('', regex_match_fn, score_threshold)
+
+    def search(self, word, match_fn, score_threshold: int=40):
         matches = {}
 
         for file in self.filelist:
             filelist = self.data[file]
             for k, v in filelist.items():
-                if word in k and v >= 40:
+                if match_fn(k) and v >= score_threshold:
                     matches[k] = v
 
         # Remove original word so we don't print it later
@@ -132,18 +146,21 @@ class Wordlist():
             print('')
             return
 
-        if len(matches) > 100:
-            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring (40+ only)")
+        # Too many words, just report number of matches.
+        if len(matches) > 200:
+            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring ({score_threshold}+)")
             return
 
+        # Prints table of matching words
         if len(matches) > 10:
-            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring (40+ only):")
+            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring ({score_threshold}+):")
             Wordlist.tableize(word, list(matches.keys()))
             return
 
         print('')
         print('-------')
 
+        # Extended results (prints the score as well)
         results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
         for match, score in results:
             print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
@@ -255,6 +272,9 @@ class Shell(cmd.Cmd):
 
     def do_g(self, arg: str):
         self.wordlist.google(arg)
+
+    def do_r(self, arg: str):
+        self.wordlist.search_regex(arg)
 
     def do_EOF(self, _: str):
         print()
