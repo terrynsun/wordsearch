@@ -6,6 +6,24 @@ def normalize(word: str):
     word = word.replace(' ', '')
     return word
 
+# Print word and its length with optional coloring(s).
+def print_word(word: str, bold=False, color=None):
+    s = f"{word} ({len(word)})"
+
+    colors = []
+    if bold:
+        colors.append(Color.BOLD)
+
+    if color:
+        colors.append(color)
+
+    print(Color.fmt(s, *colors))
+
+# Print a result from a wordlist, i.e. score and filename pair.
+def print_result(score: int, filename: str, color=None):
+    print(Color.fmt(f"{score:2d}: {filename}", color))
+
+# Print a list of words in columns
 def tableize(word, matches, columns=4):
     chunk_size = math.ceil(len(matches)/columns)
     columns = [ matches[i*chunk_size:(i+1)*chunk_size] for i in range(0, columns) ]
@@ -20,6 +38,7 @@ def tableize(word, matches, columns=4):
         row = [ fmt(w, l) for (w, l) in zip(row_words, col_lengths) ]
         print(''.join(row))
 
+# Helper class containing color constants and some colorizing functions
 class Color:
     BLACK = 30
     # RED = 31

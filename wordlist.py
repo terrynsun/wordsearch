@@ -1,14 +1,74 @@
 import re
 
 from pathlib import Path
+from collections import Counter
 
 import util
 from util import Color
 
 class Wordlist():
+    ## PUBLIC INTERFACE ##
+    ######################
+    #
+    # (Python has no public/private marker. Conventionally you prepend
+    # underscores to mark privacy.)
+
     def __init__(self):
+        # self.data is a dict { filename: wordlist }
+        # wordlist is a dict { word: score }
         self.data = {}
+
+        # Wordlists are ordered, and they must be searched in this order. Later
+        # lists have higher precedence.
         self.filelist = []
+
+    # Loads a list of files (i.e. from command line invocation)
+    def load(self, files):
+        if type(files) == list:
+            for file in files:
+                self.load_single_path(file)
+        else:
+            self.load_single_path(files)
+
+        # We want to search wordlists in a specific order to handle overrides.
+        self.filelist.sort()
+
+        print('Files loaded, highest precedence last:')
+        for f in self.filelist:
+            print(f"- {f}")
+
+        print('')
+
+    # A basic query searches the given word as exact match first, then search
+    # for containing substrings.
+    def query(self, word):
+        normalized_word = util.normalize(word)
+
+        self.match_exact(normalized_word, True)
+
+        self.search_substring(normalized_word)
+
+    # Regex search using Python's regex search engine
+    def query_regex(self, regex: str, score_threshold: int=40):
+        compiled_regex = re.compile(regex)
+        regex_match_fn = lambda x: compiled_regex.match(x)
+
+        self.search('', regex_match_fn, score_threshold)
+
+    # Print a couple links so you can look up the word easily.
+    def google(self, word):
+        util.print_word(word, True)
+
+        word = word.replace(' ', '+')
+
+        print(f"- https://www.google.com/search?q={word}")
+        print(f"- https://en.wikipedia.org/w/index.php?title=Special%3ASearch&search={word}")
+        print(f"- https://www.etymonline.com/word/{word}")
+        print(f"- https://www.merriam-webster.com/dictionary/{word}")
+        print(f"- https://www.crosserville.com/search/theme")
+
+    ## FILE MANAGEMENT ##
+    #####################
 
     @staticmethod
     def parse_wordlist_file(path):
@@ -18,10 +78,12 @@ class Wordlist():
 
         with open(path) as f:
             for line in f:
-                # Fails if a file doesn't contain this format.
-                split = line.strip().split(';')
+                line = line.strip()
+                split = line.split(';')
+
+                # If there's a malformed line, print error and ignore.
                 if len(split) < 2:
-                    print("invalid wordlist line:", line)
+                    print(f"{path}: invalid wordlist line: {line}")
                     continue
 
                 word = split[0]
@@ -34,7 +96,8 @@ class Wordlist():
         return name, words
 
     # This can follow a directory one level down and parse its files. It loads
-    # one path, not a single file. But it doesn't recurse more than once.
+    # one path, which can be a directory or a single file. But it doesn't
+    # recurse more than once.
     def load_single_path(self, path):
         file = Path(path)
 
@@ -53,36 +116,22 @@ class Wordlist():
             print(f"file not found: {path}")
             exit(1)
 
-    # Loads a list of files (i.e. from command line invocation)
-    def load_files(self, files):
-        for file in files:
-            self.load_single_path(file)
+    ## WORDLIST STUFF ##
+    ####################
 
-        # We want to search wordlists in a specific order to handle overrides.
-        self.filelist.sort()
+    # Prints each wordlist score distribution
+    def count_scores(self):
+        for file in self.filelist:
+            c = Counter()
 
-        print('Files loaded, highest precedence last:')
-        for f in self.filelist:
-            print(f"- {f}")
+            filelist = self.data[file]
+            for _, v in filelist.items():
+                c[v] += 1
 
-        print('')
+            print(f"{file}\n{c}\n")
 
-    # Print word and its length with optional coloring(s).
-    def print_word(self, word: str, bold=False, color=None):
-        s = f"{word} ({len(word)})"
-
-        colors = []
-        if bold:
-            colors.append(Color.BOLD)
-
-        if color:
-            colors.append(color)
-
-        print(Color.fmt(s, *colors))
-
-    # Print a result from a wordlist, i.e. score and filename pair.
-    def print_result(self, score: int, filename: str, color=None):
-        print(Color.fmt(f"{score:2d}: {filename}", color))
+    ## SEARCHING ##
+    ###############
 
     # Search a single word and print results.
     # - Prints word in red if not found, teal if found.
@@ -97,16 +146,16 @@ class Wordlist():
                 results.append((score, file))
 
         if len(results) == 0:
-            self.print_word(word, original, Color.RED)
+            util.print_word(word, original, Color.RED)
             return
         else:
-            self.print_word(word, original, Color.CYAN)
+            util.print_word(word, original, Color.CYAN)
 
         for (score, file) in results[:-1]:
-            self.print_result(score, file, Color.GREY)
+            util.print_result(score, file, Color.GREY)
 
         score, file = results[-1]
-        self.print_result(score, file)
+        util.print_result(score, file)
 
     # Looks for the word as a substring (not exact match). If there's a wieldy
     # number of results, uses match_exact to print the wordlist results for all
@@ -118,13 +167,8 @@ class Wordlist():
 
         self.search(word, substring_match_fn, score_threshold)
 
-    # Regex search using Python's regex search engine
-    def search_regex(self, regex: str, score_threshold: int=40):
-        compiled_regex = re.compile(regex)
-        regex_match_fn = lambda x: compiled_regex.match(x)
-
-        self.search('', regex_match_fn, score_threshold)
-
+    # Searches all wordlists, using a provided match_fn lambda.
+    # The original word is also passed in so we can use it to highlight results.
     def search(self, word, match_fn, score_threshold: int=40):
         matches = {}
 
@@ -160,25 +204,3 @@ class Wordlist():
         results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
         for match, score in results:
             print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
-
-    # Searches the given word as exact match first, then search for containing
-    # substrings.
-    def query(self, word):
-        normalized_word = util.normalize(word)
-
-        self.match_exact(normalized_word, True)
-
-        self.search_substring(normalized_word)
-
-    # Print a couple links so you can look up the word easily.
-    def google(self, word):
-        self.print_word(word, True)
-
-        word = word.replace(' ', '+')
-
-        print(f"- https://www.google.com/search?q={word}")
-        print(f"- https://en.wikipedia.org/w/index.php?title=Special%3ASearch&search={word}")
-        print(f"- https://www.etymonline.com/word/{word}")
-        print(f"- https://www.merriam-webster.com/dictionary/{word}")
-        print(f"- https://www.crosserville.com/search/theme")
-

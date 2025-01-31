@@ -16,13 +16,23 @@ class Shell(cmd.Cmd):
         super(Shell, self).__init__()
 
     def default(self, arg: str):
+        '''
+        Enter a bare word to do a basic query, with full match and substring
+        search.
+        '''
         self.wordlist.query(arg)
 
     def do_g(self, arg: str):
+        '''
+        Generate a few links to websites for definitions of the word
+        '''
         self.wordlist.google(arg)
 
     def do_r(self, arg: str):
-        self.wordlist.search_regex(arg)
+        '''
+        A regex search
+        '''
+        self.wordlist.query_regex(arg)
 
     def do_EOF(self, _: str):
         print()
@@ -33,7 +43,7 @@ class Shell(cmd.Cmd):
 
 def main(args):
     wl = Wordlist()
-    wl.load_files(args)
+    wl.load(args)
 
     Shell(wl).cmdloop()
 
