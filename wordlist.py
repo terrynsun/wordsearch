@@ -53,7 +53,7 @@ class Wordlist():
     # Regex search using Python's regex search engine
     def query_regex(self, regex: str, score_threshold: int=40):
         compiled_regex = re.compile(regex)
-        regex_match_fn = lambda x: compiled_regex.match(x)
+        regex_match_fn = lambda x: compiled_regex.fullmatch(x)
 
         matches = self.search(regex_match_fn, score_threshold)
         if len(matches) == 0:

@@ -30,7 +30,8 @@ class Shell(cmd.Cmd):
 
     def do_r(self, arg: str):
         '''
-        A regex search
+        Run a regex search. In fullmatch mode; use .* at beginning or end to
+        allow partial match.
         '''
         self.wordlist.query_regex(arg)
 
