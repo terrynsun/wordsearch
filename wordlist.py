@@ -48,16 +48,24 @@ class Wordlist():
 
         self.search_substring(normalized_word)
 
+    SPLIT_ASCII_WORDS = re.compile(r'\W')
+
     # Regex search using Python's regex search engine
     def query_regex(self, regex: str, score_threshold: int=40):
         compiled_regex = re.compile(regex)
         regex_match_fn = lambda x: compiled_regex.match(x)
 
-        self.search('', regex_match_fn, score_threshold)
+        matches = self.search(regex_match_fn, score_threshold)
+        if len(matches) == 0:
+            return
+
+        highlights = self.SPLIT_ASCII_WORDS.split(regex)
+
+        util.tableize(highlights, list(matches.keys()))
 
     # Print a couple links so you can look up the word easily.
     def google(self, word):
-        util.print_word(word, True)
+        util.display_word(word, True)
 
         word = word.replace(' ', '+')
 
@@ -133,12 +141,14 @@ class Wordlist():
     ## SEARCHING ##
     ###############
 
-    # Search a single word and print results.
+    # Search a single word and prints its score in every wordlist it's found in.
     # - Prints word in red if not found, teal if found.
     # - Highest precedence is printed last. Overwritten word lists are printed
     # in grey.
     def match_exact(self, word: str, original=False):
-        results = []
+        # [ (score, filename) ]
+        results: list = []
+
         for file in self.filelist:
             filelist = self.data[file]
             if word in filelist:
@@ -146,14 +156,16 @@ class Wordlist():
                 results.append((score, file))
 
         if len(results) == 0:
-            util.print_word(word, original, Color.RED)
+            util.display_word(word, original, Color.RED)
             return
-        else:
-            util.print_word(word, original, Color.CYAN)
 
+        util.display_word(word, original, Color.CYAN)
+
+        # Grey for overwritten lists
         for (score, file) in results[:-1]:
             util.print_result(score, file, Color.GREY)
 
+        # Regular color for final result
         score, file = results[-1]
         util.print_result(score, file)
 
@@ -165,18 +177,7 @@ class Wordlist():
     def search_substring(self, word: str, score_threshold: int=40):
         substring_match_fn = lambda x: word in x
 
-        self.search(word, substring_match_fn, score_threshold)
-
-    # Searches all wordlists, using a provided match_fn lambda.
-    # The original word is also passed in so we can use it to highlight results.
-    def search(self, word, match_fn, score_threshold: int=40):
-        matches = {}
-
-        for file in self.filelist:
-            filelist = self.data[file]
-            for k, v in filelist.items():
-                if match_fn(k) and v >= score_threshold:
-                    matches[k] = v
+        matches = self.search(substring_match_fn, score_threshold)
 
         # Remove original word so we don't print it later
         if word in matches:
@@ -204,3 +205,16 @@ class Wordlist():
         results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
         for match, score in results:
             print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
+
+    # Searches all wordlists, using a provided match_fn lambda.
+    # The original word is also passed in so we can use it to highlight results.
+    def search(self, match_fn, score_threshold: int=40):
+        matches = {}
+
+        for file in self.filelist:
+            filelist = self.data[file]
+            for k, v in filelist.items():
+                if match_fn(k) and v >= score_threshold:
+                    matches[k] = v
+
+        return matches

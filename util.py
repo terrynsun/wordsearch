@@ -7,7 +7,7 @@ def normalize(word: str):
     return word
 
 # Print word and its length with optional coloring(s).
-def print_word(word: str, bold=False, color=None):
+def display_word(word: str, bold=False, color=None):
     s = f"{word} ({len(word)})"
 
     colors = []
@@ -24,18 +24,25 @@ def print_result(score: int, filename: str, color=None):
     print(Color.fmt(f"{score:2d}: {filename}", color))
 
 # Print a list of words in columns
-def tableize(word, matches, columns=4):
+def tableize(highlight_word, matches, columns=4):
+    if len(matches) == 0:
+        return
+
+    to_highlight = [highlight_word] if type(highlight_word) == str else highlight_word
+
     chunk_size = math.ceil(len(matches)/columns)
     columns = [ matches[i*chunk_size:(i+1)*chunk_size] for i in range(0, columns) ]
     wordlengths = [ [ len(x) for x in col ] for col in columns ]
     col_lengths = [ max(x)+2 for x in wordlengths ]
 
-    # Justify to column & color original word
-    fmt = lambda s, l: Color.highlight(str.ljust(s, l), word, Color.YELLOW)
+    # Pad to column len & color original word
+    def tablefmt(word, col_len):
+        padded_word = str.ljust(word, col_len)
+        return Color.highlight_many(padded_word, to_highlight, Color.YELLOW)
 
     for i in range(0, chunk_size):
         row_words = [ col[i] for col in columns if len(col) > i ]
-        row = [ fmt(w, l) for (w, l) in zip(row_words, col_lengths) ]
+        row = [ tablefmt(w, l) for (w, l) in zip(row_words, col_lengths) ]
         print(''.join(row))
 
 # Helper class containing color constants and some colorizing functions
@@ -68,14 +75,27 @@ class Color:
         return f"{fmtstring}{s}\033[0m"
 
     @staticmethod
-    def highlight(s: str, substr: str, *args):
-        index = s.find(substr)
+    def highlight(full: str, substr: str, *args):
+        if substr not in full:
+            return full
+
+        index = full.find(substr)
         length = len(substr)
 
-        prefix = s[:index]
-        suffix = s[index+length:]
+        prefix = full[:index]
+        suffix = full[index+length:]
 
         return f"{prefix}{Color.fmt(substr, *args)}{suffix}"
+
+    @staticmethod
+    def highlight_many(full: str, substrs: list[str], *args):
+        # This is currently like O(n^2 * m)
+        word = full
+
+        for substr in substrs:
+            word = Color.highlight(word, substr, *args)
+
+        return word
 
     @staticmethod
     def bold(s: str):
