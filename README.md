@@ -5,9 +5,6 @@ go.
 
 ## Todo
 
-Code:
-- Split into multiple files. Clean up helper functions.
-
 Behavior:
 - Fix ^C behavior: https://stackoverflow.com/a/37380019
 
