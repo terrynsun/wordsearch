@@ -199,6 +199,7 @@ class Wordlist():
         print(f"- https://en.wikipedia.org/w/index.php?title=Special%3ASearch&search={word}")
         print(f"- https://www.etymonline.com/word/{word}")
         print(f"- https://www.merriam-webster.com/dictionary/{word}")
+        print(f"- https://www.crosserville.com/search/theme")
 
 class Color:
     BLACK = 30
