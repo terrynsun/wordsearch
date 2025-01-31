@@ -64,7 +64,7 @@ class Wordlist():
         util.tableize(highlights, list(matches.keys()))
 
     # Print a couple links so you can look up the word easily.
-    def google(self, word):
+    def explain(self, word):
         util.display_word(word, True)
 
         word = word.replace(' ', '+')

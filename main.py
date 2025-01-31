@@ -22,11 +22,11 @@ class Shell(cmd.Cmd):
         '''
         self.wordlist.query(arg)
 
-    def do_g(self, arg: str):
+    def do_e(self, arg: str):
         '''
         Generate a few links to websites for definitions of the word
         '''
-        self.wordlist.google(arg)
+        self.wordlist.explain(arg)
 
     def do_r(self, arg: str):
         '''
