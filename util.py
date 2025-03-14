@@ -28,6 +28,12 @@ def tableize(highlight_word, matches, columns=4):
     if len(matches) == 0:
         return
 
+    if len(matches) <= columns:
+        print(' '.join(matches))
+        return
+
+    # highlight one or more words; if highlight_word is a string, turn it into
+    # an array
     to_highlight = [highlight_word] if type(highlight_word) == str else highlight_word
 
     chunk_size = math.ceil(len(matches)/columns)
