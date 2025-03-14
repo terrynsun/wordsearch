@@ -23,30 +23,31 @@ def display_word(word: str, bold=False, color=None):
 def print_result(score: int, filename: str, color=None):
     print(Color.fmt(f"{score:2d}: {filename}", color))
 
+# https://stackoverflow.com/a/2135920
+def split_array(a, n):
+    k, m = divmod(len(a), n)
+    return [a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n)]
+
 # Print a list of words in columns
 def tableize(highlight_word, matches, columns=4):
     if len(matches) == 0:
-        return
-
-    if len(matches) <= columns:
-        print(' '.join(matches))
         return
 
     # highlight one or more words; if highlight_word is a string, turn it into
     # an array
     to_highlight = [highlight_word] if type(highlight_word) == str else highlight_word
 
-    chunk_size = math.ceil(len(matches)/columns)
-    columns = [ matches[i*chunk_size:(i+1)*chunk_size] for i in range(0, columns) ]
+    columns = split_array(matches, columns)
+
     wordlengths = [ [ len(x) for x in col ] for col in columns ]
-    col_lengths = [ max(x)+2 for x in wordlengths ]
+    col_lengths = [ max(x)+2 for x in wordlengths if len(x) > 0 ]
 
     # Pad to column len & color original word
     def tablefmt(word, col_len):
         padded_word = str.ljust(word, col_len)
         return Color.highlight_many(padded_word, to_highlight, Color.YELLOW)
 
-    for i in range(0, chunk_size):
+    for i in range(len(columns[0])):
         row_words = [ col[i] for col in columns if len(col) > i ]
         row = [ tablefmt(w, l) for (w, l) in zip(row_words, col_lengths) ]
         print(''.join(row))
