@@ -35,6 +35,12 @@ class Shell(cmd.Cmd):
         '''
         self.wordlist.query_regex(arg)
 
+    def do_s(self, arg: str):
+        '''
+        Search for surrounds.
+        '''
+        self.wordlist.query_sandwich(arg)
+
     def do_EOF(self, _: str):
         print()
         return True

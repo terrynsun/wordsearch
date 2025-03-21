@@ -63,6 +63,18 @@ class Wordlist():
 
         util.tableize(highlights, list(matches.keys()))
 
+    # Regex search using Python's regex search engine
+    def query_sandwich(self, word: str, score_threshold: int=40):
+        if len(word) < 2:
+            print("need at least two characters to query sandwich")
+            return
+
+        for i in range(1, len(word)):
+            prefix, suffix = word[:i], word[i:]
+            regex = f"{prefix}.*{suffix}"
+            self.query_regex(regex, score_threshold)
+            print()
+
     # Print a couple links so you can look up the word easily.
     def explain(self, word):
         util.display_word(word, True)
