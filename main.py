@@ -41,6 +41,12 @@ class Shell(cmd.Cmd):
         '''
         self.wordlist.query_sandwich(arg)
 
+    def do_list(self, _: str):
+        '''
+        Search for surrounds.
+        '''
+        self.wordlist.list_3s()
+
     def do_EOF(self, _: str):
         print()
         return True

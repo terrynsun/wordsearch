@@ -75,6 +75,27 @@ class Wordlist():
             self.query_regex(regex, score_threshold)
             print()
 
+    def list_3s(self):
+        compiled_regex = re.compile("...")
+        regex_match_fn = lambda x: compiled_regex.fullmatch(x)
+
+        matches = self.search(regex_match_fn, 50)
+        sorted_matches = sorted(list(matches.keys()))
+
+        # remove words that don't start with letters
+        while sorted_matches[0][0] != 'a':
+            sorted_matches.pop(0)
+
+        # split by first letter
+        for letter in range(ord('a'), ord('z')+1):
+            c = chr(letter)
+            acc = []
+            while len(sorted_matches) > 0 and sorted_matches[0][0] == c:
+                acc.append(sorted_matches.pop(0))
+
+            util.tableize('', acc, columns=8)
+            print()
+
     # Print a couple links so you can look up the word easily.
     def explain(self, word):
         util.display_word(word, True)
