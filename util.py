@@ -35,7 +35,11 @@ def tableize(highlight_word, matches, columns=4):
 
     # highlight one or more words; if highlight_word is a string, turn it into
     # an array
-    to_highlight = [highlight_word] if type(highlight_word) == str else highlight_word
+    to_highlight = []
+    if type(highlight_word) == str:
+        to_highlight = [highlight_word]
+    elif type(highlight_word) == list:
+        to_highlight = highlight_word
 
     columns = split_array(matches, columns)
 

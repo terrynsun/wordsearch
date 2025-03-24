@@ -93,7 +93,7 @@ class Wordlist():
             while len(sorted_matches) > 0 and sorted_matches[0][0] == c:
                 acc.append(sorted_matches.pop(0))
 
-            util.tableize('', acc, columns=8)
+            util.tableize(None, acc, columns=8)
             print()
 
     # Print a couple links so you can look up the word easily.
