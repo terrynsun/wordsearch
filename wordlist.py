@@ -69,10 +69,30 @@ class Wordlist():
             print("need at least two characters to query sandwich")
             return
 
+        # track seen words so we don't report them repeatedly
+        seen = set()
+
         for i in range(1, len(word)):
             prefix, suffix = word[:i], word[i:]
-            regex = f"{prefix}.*{suffix}"
-            self.query_regex(regex, score_threshold)
+            regex = f"{prefix}.+{suffix}"
+
+            compiled_regex = re.compile(regex)
+            regex_match_fn = lambda x: compiled_regex.fullmatch(x)
+
+            matches = self.search(regex_match_fn, score_threshold).keys()
+
+            seen.update(matches)
+
+            # remove result if it contains the original word
+            filtered_words = [ x for x in matches if not word in x and x not in seen]
+
+            if len(filtered_words) == 0:
+                continue
+
+            filtered_words.sort(key=lambda x: len(x))
+
+            util.tableize([prefix, suffix], list(filtered_words))
+
             print()
 
     def list_3s(self):
