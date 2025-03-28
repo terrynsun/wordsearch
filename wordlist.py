@@ -99,7 +99,9 @@ class Wordlist():
         compiled_regex = re.compile("...")
         regex_match_fn = lambda x: compiled_regex.fullmatch(x)
 
-        matches = self.search(regex_match_fn, 50)
+        #matches = self.search(regex_match_fn, 50)
+        matches = self.low_only_search(regex_match_fn)
+
         sorted_matches = sorted(list(matches.keys()))
 
         # remove words that don't start with letters
@@ -267,7 +269,32 @@ class Wordlist():
         for file in self.filelist:
             filelist = self.data[file]
             for k, v in filelist.items():
+                # note - currently accepts word if over the threshold on ANY
+                # wordlist. is this desirable or do we want to override? it
+                # might be fine bc we want to cast a wide net on searching.
                 if match_fn(k) and v >= score_threshold:
                     matches[k] = v
+
+        return matches
+
+    def low_only_search(self, match_fn):
+        matches = {}
+        fifties = set()
+
+        for file in self.filelist:
+            filelist = self.data[file]
+            for k, v in filelist.items():
+                # note - currently accepts word if over the threshold on ANY
+                # wordlist. is this desirable or do we want to override? it
+                # might be fine bc we want to cast a wide net on searching.
+                if match_fn(k):
+                    if v < 50:
+                        matches[k] = v
+                    else:
+                        fifties.add(k)
+
+        for word in fifties:
+            if word in matches:
+                del matches[word]
 
         return matches
