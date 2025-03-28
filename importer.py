@@ -5,6 +5,8 @@ import sys
 
 import util
 
+SCORE = 75
+
 def output_word(word, score):
     print(f"{util.normalize(word)};{score}")
 
@@ -20,11 +22,11 @@ def load_csv(fname):
             if row[0] == '':
                 continue
 
-            output_word(row[0], 61)
+            output_word(row[0], SCORE)
             variants = row[variant_col]
             if variants:
                 for v in variants.split(','):
-                    output_word(v.strip(), 61)
+                    output_word(v.strip(), SCORE)
 
 def main(args):
     load_csv(args[0])
