@@ -1,5 +1,6 @@
 import re
 
+import sys
 from pathlib import Path
 from collections import Counter
 
@@ -33,11 +34,11 @@ class Wordlist():
         # We want to search wordlists in a specific order to handle overrides.
         self.filelist.sort()
 
-        print('Files loaded, highest precedence last:')
+        print('Files loaded, highest precedence last:', file=sys.stderr)
         for f in self.filelist:
-            print(f"- {f}")
+            print(f"- {f}", file=sys.stderr)
 
-        print('')
+        print('', file=sys.stderr)
 
     # A basic query searches the given word as exact match first, then search
     # for containing substrings.
