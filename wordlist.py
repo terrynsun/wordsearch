@@ -82,10 +82,10 @@ class Wordlist():
 
             matches = self.search(regex_match_fn, score_threshold).keys()
 
-            seen.update(matches)
-
             # remove result if it contains the original word
             filtered_words = [ x for x in matches if not word in x and x not in seen]
+
+            seen.update(matches)
 
             if len(filtered_words) == 0:
                 continue
