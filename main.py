@@ -43,7 +43,6 @@ class Shell(cmd.Cmd):
 
     def do_list(self, _: str):
         '''
-        Search for surrounds.
         '''
         self.wordlist.list_3s()
 

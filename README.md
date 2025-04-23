@@ -11,6 +11,3 @@ Behavior:
 New functionality:
 - Downscore / upscore / write to file
 - Convert personal list to wordlist. Display notes from personal list.
-
-- What is Peter Broda's wordlist? Can I normalize it with the other ones?
-    Why does it have 500k words and how much of it is duplicated?
