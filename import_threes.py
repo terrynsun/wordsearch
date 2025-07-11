@@ -9,8 +9,10 @@ def output_word(word, score):
     print(f"{util.normalize(word)};{score}")
 
 def load_csv(fname):
+    wordlist = {}
+
     with open(fname, newline='') as csvfile:
-        reader = csv.reader(csvfile)
+        reader = csv.reader(csvfile, delimiter='\t')
         # Header is just for notes in the doc
         _ = next(reader)
 
@@ -22,7 +24,10 @@ def load_csv(fname):
                 if word == '' or score == '':
                     continue
 
-                output_word(word, score)
+                wordlist[word] = score
+
+    for word, score in sorted(wordlist.items()):
+        output_word(word, score)
 
 def main(args):
     load_csv(args[0])
