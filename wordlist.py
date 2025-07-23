@@ -196,6 +196,12 @@ class Wordlist():
 
     ## SEARCHING ##
     ###############
+    def contains(self, word: str, score_threshold=0):
+        for file in self.filelist:
+            filelist = self.data[file]
+            if word in filelist and filelist[word] >= score_threshold:
+                return True
+        return False
 
     # Search a single word and prints its score in every wordlist it's found in.
     # - Prints word in red if not found, teal if found.
