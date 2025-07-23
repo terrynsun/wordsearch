@@ -147,7 +147,7 @@ class Wordlist():
 
                 # If there's a malformed line, print error and ignore.
                 if len(split) < 2:
-                    print(f"{path}: invalid wordlist line: {line}")
+                    print(f"{path}: invalid line: {line}", file=sys.stderr)
                     continue
 
                 word = split[0]
