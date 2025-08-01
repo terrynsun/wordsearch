@@ -7,26 +7,39 @@ import util
 
 SCORE = 75
 
-def output_word(word, score):
-    print(f"{util.normalize(word)};{score}")
+def output_word(word, score, notes):
+    if notes != '':
+        print(f"{word};{score};{notes}")
+    else:
+        print(f"{word};{score}")
 
 def load_csv(fname):
+    wordlist = {}
+
     with open(fname, newline='') as csvfile:
-        reader = csv.reader(csvfile)
+        reader = csv.reader(csvfile, delimiter='\t')
         # Read header
         headers = next(reader)
         variant_col = headers.index('Variants')
+        notes_col = headers.index('Notes')
 
         for row in reader:
+            word = util.normalize(row[0])
             # Ignore empty lines (they exist in the spreadsheet for convenience)
-            if row[0] == '':
+            if word == '':
                 continue
 
-            output_word(row[0], SCORE)
+            notes = row[notes_col]
+
+            wordlist[word] = (SCORE, notes)
+
             variants = row[variant_col]
             if variants:
                 for v in variants.split(','):
-                    output_word(v.strip(), SCORE)
+                    wordlist[util.normalize(v)] = (SCORE, notes)
+
+    for word, (score, notes) in sorted(wordlist.items()):
+        output_word(word, score, notes)
 
 def main(args):
     load_csv(args[0])
