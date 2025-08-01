@@ -40,6 +40,10 @@ class Wordlist():
 
         print('', file=sys.stderr)
 
+    def ignore(self, filename):
+        if filename in self.filelist:
+            self.filelist.remove(filename)
+
     # A basic query searches the given word as exact match first, then search
     # for containing substrings.
     def query(self, word):
@@ -197,11 +201,16 @@ class Wordlist():
     ## SEARCHING ##
     ###############
     def contains(self, word: str, score_threshold=0):
+        max_score = 0
+        contains = False
+
         for file in self.filelist:
             filelist = self.data[file]
             if word in filelist and filelist[word] >= score_threshold:
-                return True
-        return False
+                max_score = filelist[word]
+                contains = True
+
+        return contains, max_score
 
     # Search a single word and prints its score in every wordlist it's found in.
     # - Prints word in red if not found, teal if found.
