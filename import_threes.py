@@ -13,7 +13,7 @@ def load_csv(fname):
 
     with open(fname, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
-        # Header is just for notes in the doc
+        # First header is just for notes in the doc
         _ = next(reader)
 
         # Second row gives scores
