@@ -1,31 +1,31 @@
 import re
+import os
 
 import sys
 from pathlib import Path
-from collections import Counter
 
 import util
 from util import Color
 
 class Wordlist():
-    ## PUBLIC INTERFACE ##
-    ######################
+    # PUBLIC INTERFACE #
+    ####################
     #
     # (Python has no public/private marker. Conventionally you prepend
     # underscores to mark privacy.)
 
-    def __init__(self):
+    def __init__(self) -> None:
         # self.data is a dict { filename: wordlist }
         # wordlist is a dict { word: score }
-        self.data = {}
+        self.data: dict[str, dict[str, int]] = {}
 
         # Wordlists are ordered, and they must be searched in this order. Later
         # lists have higher precedence.
-        self.filelist = []
+        self.filelist: list[str] = []
 
     # Loads a list of files (i.e. from command line invocation)
     def load(self, files):
-        if type(files) == list:
+        if type(files) is list:
             for file in files:
                 self.load_single_path(file)
         else:
@@ -44,38 +44,48 @@ class Wordlist():
         if filename in self.filelist:
             self.filelist.remove(filename)
 
-    # A basic query searches the given word as exact match first, then search
-    # for containing substrings.
+    # INTERFACE #
+    #############
+    # Functions called from the REPL or list.py
+
     def query(self, word):
+        """A basic query searches the given word as exact match first, then
+        searches for entries that contain word as a substring.
+        """
         normalized_word = util.normalize(word)
 
-        self.match_exact(normalized_word, True)
+        # Prints matching wordlists, and scores.
+        results = self.match_exact(normalized_word, True)
+        self.print_wordlist_matches(word, results)
 
-        self.search_substring(normalized_word)
+        # Prints entries as a table.
+        results = self.search_substring(normalized_word)
+        self.print_result_table(results, word)
 
     SPLIT_ASCII_WORDS = re.compile(r'\W')
 
-    # Regex search using Python's regex search engine
-    def query_regex(self, regex: str, score_threshold: int=40):
+    def query_regex(self, regex: str, score_minimum: int = 40):
+        """Regex search using Python's regex search engine"""
         compiled_regex = re.compile(regex)
         regex_match_fn = lambda x: compiled_regex.fullmatch(x)
 
-        matches = self.search(regex_match_fn, score_threshold)
+        matches = self.search(regex_match_fn, score_minimum)
         if len(matches) == 0:
             return
 
+        long_matches = filter(lambda word: len(word) > 8 and len(word) < 15, matches)
+
         highlights = self.SPLIT_ASCII_WORDS.split(regex)
 
-        util.tableize(highlights, list(matches.keys()))
+        util.tableize(highlights, list(long_matches))
 
-    # Regex search using Python's regex search engine
-    def query_sandwich(self, word: str, score_threshold: int=40):
+    def query_sandwich(self, word: str, score_minimum: int = 40):
         if len(word) < 2:
             print("need at least two characters to query sandwich")
             return
 
         # track seen words so we don't report them repeatedly
-        seen = set()
+        seen: set[str] = set()
 
         for i in range(1, len(word)):
             prefix, suffix = word[:i], word[i:]
@@ -84,10 +94,11 @@ class Wordlist():
             compiled_regex = re.compile(regex)
             regex_match_fn = lambda x: compiled_regex.fullmatch(x)
 
-            matches = self.search(regex_match_fn, score_threshold).keys()
+            matches = self.search(regex_match_fn, score_minimum).keys()
 
             # remove result if it contains the original word
-            filtered_words = [ x for x in matches if not word in x and x not in seen]
+            filtered_words = [x for x in matches
+                              if word not in x and x not in seen]
 
             seen.update(matches)
 
@@ -104,8 +115,7 @@ class Wordlist():
         compiled_regex = re.compile("...")
         regex_match_fn = lambda x: compiled_regex.fullmatch(x)
 
-        #matches = self.search(regex_match_fn, 50)
-        matches = self.low_only_search(regex_match_fn)
+        matches = self.search(regex_match_fn, 50)
 
         sorted_matches = sorted(list(matches.keys()))
 
@@ -114,7 +124,7 @@ class Wordlist():
             sorted_matches.pop(0)
 
         # split by first letter
-        for letter in range(ord('a'), ord('z')+1):
+        for letter in range(ord('a'), ord('z') + 1):
             c = chr(letter)
             acc = []
             while len(sorted_matches) > 0 and sorted_matches[0][0] == c:
@@ -123,8 +133,23 @@ class Wordlist():
             util.tableize(None, acc, columns=8)
             print()
 
-    # Print a couple links so you can look up the word easily.
+    def score(self, word: str, score_minimum=0):
+        """Return whether a word exists, and its score.
+
+        Used for wordlist comparison/plural generation."""
+        max_score = 0
+        contains = False
+
+        for file in self.filelist:
+            filelist = self.data[file]
+            if word in filelist and filelist[word] >= score_minimum:
+                max_score = filelist[word]
+                contains = True
+
+        return contains, max_score
+
     def explain(self, word):
+        """Print a couple links so you can look up the word easily."""
         util.display_word(word, True)
 
         word = word.replace(' ', '+')
@@ -133,11 +158,57 @@ class Wordlist():
         print(f"- https://en.wikipedia.org/w/index.php?title=Special%3ASearch&search={word}")
         print(f"- https://www.etymonline.com/word/{word}")
         print(f"- https://www.merriam-webster.com/dictionary/{word}")
-        print(f"- https://www.crosserville.com/search/theme")
+        print("- https://www.crosserville.com/search/theme")
 
-    ## FILE MANAGEMENT ##
-    #####################
+    # OUTPUT #
+    ##########
+    def print_wordlist_matches(self, word: str,
+                               results: list[tuple[int, str]],
+                               bold: bool = False) -> None:
+        # - Prints word in red if not found, teal if found.
+        # - Highest precedence is printed last. Overwritten word lists are
+        # printed in grey.
+        if len(results) == 0:
+            util.display_word(word, bold, Color.RED)
+            return
 
+        util.display_word(word, bold, Color.CYAN)
+
+        # Grey for overwritten lists
+        for (score, file) in results[:-1]:
+            util.print_result(score, file, Color.GREY)
+
+        # Regular color for final result
+        score, file = results[-1]
+        util.print_result(score, file)
+
+    def print_result_table(self, matches: dict[str, int], original_word: str,
+                           score_minimum: int = 40) -> None:
+        if len(matches) == 0:
+            print('')
+            return
+
+        # Too many words, just report number of matches.
+        if len(matches) > max_num_results:
+            print(f"\n& found {len(matches)} other words with {Color.green(original_word)} as substring ({score_minimum}+)")
+            return
+
+        # Prints table of matching words
+        if len(matches) > 10:
+            print(f"\n& found {len(matches)} other words with {Color.green(original_word)} as substring ({score_minimum}+):")
+            util.tableize(original_word, list(matches.keys()))
+            return
+
+        print('')
+        print('-------')
+
+        # Extended results (prints the score as well)
+        results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
+        for match, score in results:
+            print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
+
+    # FILE MANAGEMENT #
+    ###################
     @staticmethod
     def parse_wordlist_file(path):
         name = path.parts[-1]
@@ -184,41 +255,13 @@ class Wordlist():
             print(f"file not found: {path}")
             exit(1)
 
-    ## WORDLIST STUFF ##
-    ####################
-
-    # Prints each wordlist score distribution
-    def count_scores(self):
-        for file in self.filelist:
-            c = Counter()
-
-            filelist = self.data[file]
-            for _, v in filelist.items():
-                c[v] += 1
-
-            print(f"{file}\n{c}\n")
-
-    ## SEARCHING ##
-    ###############
-    def contains(self, word: str, score_threshold=0):
-        max_score = 0
-        contains = False
-
-        for file in self.filelist:
-            filelist = self.data[file]
-            if word in filelist and filelist[word] >= score_threshold:
-                max_score = filelist[word]
-                contains = True
-
-        return contains, max_score
-
-    # Search a single word and prints its score in every wordlist it's found in.
-    # - Prints word in red if not found, teal if found.
-    # - Highest precedence is printed last. Overwritten word lists are printed
-    # in grey.
-    def match_exact(self, word: str, original=False):
+    # SEARCHING #
+    #############
+    # TODO unused variable, lint check
+    def match_exact(self, word: str, original=False) -> list[tuple[int, str]]:
+        """For a single word, return every list it's in and its score."""
         # [ (score, filename) ]
-        results: list = []
+        results: list[tuple[int, str]] = []
 
         for file in self.filelist:
             filelist = self.data[file]
@@ -226,91 +269,37 @@ class Wordlist():
                 score = filelist[word]
                 results.append((score, file))
 
-        if len(results) == 0:
-            util.display_word(word, original, Color.RED)
-            return
+        return results
 
-        util.display_word(word, original, Color.CYAN)
-
-        # Grey for overwritten lists
-        for (score, file) in results[:-1]:
-            util.print_result(score, file, Color.GREY)
-
-        # Regular color for final result
-        score, file = results[-1]
-        util.print_result(score, file)
-
-    # Looks for the word as a substring (not exact match). If there's a wieldy
-    # number of results, uses match_exact to print the wordlist results for all
-    # of them. Otherwise, if there's a medium number of results, print them.
-    # Otherwise, if there's just too many, only give the number of results
-    # found.
-    def search_substring(self, word: str, score_threshold: int=40):
+    def search_substring(self, word: str, score_minimum: int = 40) -> dict[str, int]:
         substring_match_fn = lambda x: word in x
 
-        matches = self.search(substring_match_fn, score_threshold)
+        matches = self.search(substring_match_fn, score_minimum)
 
         # Remove original word so we don't print it later
         if word in matches:
             del matches[word]
 
-        if len(matches) == 0:
-            print('')
-            return
-
-        # Too many words, just report number of matches.
-        if len(matches) > 200:
-            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring ({score_threshold}+)")
-            return
-
-        # Prints table of matching words
-        if len(matches) > 10:
-            print(f"\n& found {len(matches)} other words with {Color.green(word)} as substring ({score_threshold}+):")
-            util.tableize(word, list(matches.keys()))
-            return
-
-        print('')
-        print('-------')
-
-        # Extended results (prints the score as well)
-        results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
-        for match, score in results:
-            print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
-
-    # Searches all wordlists, using a provided match_fn lambda.
-    # The original word is also passed in so we can use it to highlight results.
-    def search(self, match_fn, score_threshold: int=40):
-        matches = {}
-
-        for file in self.filelist:
-            filelist = self.data[file]
-            for k, v in filelist.items():
-                # note - currently accepts word if over the threshold on ANY
-                # wordlist. is this desirable or do we want to override? it
-                # might be fine bc we want to cast a wide net on searching.
-                if match_fn(k) and v >= score_threshold:
-                    matches[k] = v
-
         return matches
 
-    def low_only_search(self, match_fn):
+    def search(self, match_fn, score_minimum: int = 40,
+               score_maximum: int | None = None) -> dict[str, int]:
+        """Searches all wordlists, using a provided match_fn lambda."""
         matches = {}
-        fifties = set()
 
+        # Checks against each file, instead of a compiled list.
+        # Thus, if the score meets the criteria in ANY list, it will be
+        # reported, even if it's later overriden.
         for file in self.filelist:
             filelist = self.data[file]
             for k, v in filelist.items():
-                # note - currently accepts word if over the threshold on ANY
-                # wordlist. is this desirable or do we want to override? it
-                # might be fine bc we want to cast a wide net on searching.
                 if match_fn(k):
-                    if v < 50:
-                        matches[k] = v
-                    else:
-                        fifties.add(k)
+                    if v < score_minimum:
+                        continue
 
-        for word in fifties:
-            if word in matches:
-                del matches[word]
+                    if score_maximum and v > score_maximum:
+                        continue
+
+                    matches[k] = v
 
         return matches

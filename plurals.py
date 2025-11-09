@@ -32,11 +32,11 @@ def find_missing_plurals():
         if not new_word:
             continue
 
-        stwl_contains, stwl_score = stwl.contains(new_word, score_threshold=0)
-        full_contains, _ = full_wordlist.contains(new_word, score_threshold=0)
+        stwl_contains, stwl_score = stwl.score(new_word, score_threshold=0)
+        full_contains, _ = full_wordlist.score(new_word, score_threshold=0)
 
         # Skip small words (for now)
-        if len(new_word) <= 4:
+        if len(new_word) > 4:
             continue
 
         # If it's in STWL but higher than 50, it's already there.
@@ -46,8 +46,7 @@ def find_missing_plurals():
                 print(f'{new_word};50')
         # If it's not in STWL, it can be in any of the other lists at any score.
         elif full_contains:
-            pass
-            #print(f'{new_word};50')
+            print(f'{new_word};50')
         # Else, it might not be a real word.
 
 if __name__ == '__main__':
