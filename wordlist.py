@@ -48,7 +48,7 @@ class Wordlist():
     #############
     # Functions called from the REPL or list.py
 
-    def query(self, word):
+    def query(self, word: str) -> None:
         """A basic query searches the given word as exact match first, then
         searches for entries that contain word as a substring.
         """
@@ -59,8 +59,17 @@ class Wordlist():
         self.print_wordlist_matches(word, results)
 
         # Prints entries as a table.
-        results = self.search_substring(normalized_word)
-        self.print_result_table(results, word)
+        substr_results = self.search_substring(normalized_word)
+
+        num_columns: int = 4
+
+        term_size: os.terminal_size = os.get_terminal_size()
+        max_num_results = term_size.lines * num_columns
+        # Subtract 2 to account for space between columns
+        max_word_length = int(term_size.columns / num_columns - 2)
+
+        self.print_result_table(substr_results, word, 40, num_columns,
+                                max_num_results, max_word_length)
 
     SPLIT_ASCII_WORDS = re.compile(r'\W')
 
@@ -183,14 +192,22 @@ class Wordlist():
         util.print_result(score, file)
 
     def print_result_table(self, matches: dict[str, int], original_word: str,
-                           score_minimum: int = 40) -> None:
+                           score_minimum: int = 40,
+                           num_columns: int | None = None,
+                           max_result_count: int | None = None,
+                           max_word_length: int | None = None) -> None:
+        # TODO: better way to filter?
+        if max_word_length:
+            matches = {k: v for k, v in matches.items()
+                       if len(k) < max_word_length}
+
         if len(matches) == 0:
             print('')
             return
 
         # Too many words, just report number of matches.
-        if len(matches) > max_num_results:
-            print(f"\n& found {len(matches)} other words with {Color.green(original_word)} as substring ({score_minimum}+)")
+        if max_result_count and len(matches) > max_result_count:
+            print(f"\n& omitting {len(matches)} other words with {Color.green(original_word)} as substring ({score_minimum}+)")
             return
 
         # Prints table of matching words
@@ -205,7 +222,7 @@ class Wordlist():
         # Extended results (prints the score as well)
         results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
         for match, score in results:
-            print(f"{score} {Color.highlight(match, word, Color.YELLOW)} ({len(match)})")
+            print(f"{score} {Color.highlight(match, original_word, Color.YELLOW)} ({len(match)})")
 
     # FILE MANAGEMENT #
     ###################
