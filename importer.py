@@ -7,13 +7,13 @@ import util
 
 SCORE = 75
 
-def output_word(word, score, notes):
+def output_word(word: str, score: int, notes: str):
     if notes != '':
         print(f"{word};{score};{notes}")
     else:
         print(f"{word};{score}")
 
-def load_csv(fname):
+def load_csv(fname: str):
     wordlist = {}
 
     with open(fname, newline='') as csvfile:
@@ -41,7 +41,7 @@ def load_csv(fname):
     for word, (score, notes) in sorted(wordlist.items()):
         output_word(word, score, notes)
 
-def main(args):
+def main(args: list[str]):
     load_csv(args[0])
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ def print_low_3s(wl: Wordlist):
     compiled_regex = re.compile("...")
     regex_match_fn = lambda x: compiled_regex.fullmatch(x)
 
-    #matches = self.search(regex_match_fn, 50)
+    # matches = self.search(regex_match_fn, 50)
     matches = wl.low_only_search(regex_match_fn)
 
     sorted_matches = sorted(list(matches.keys()))
@@ -22,7 +22,7 @@ def print_low_3s(wl: Wordlist):
         sorted_matches.pop(0)
 
     # split by first letter
-    for letter in range(ord('a'), ord('z')+1):
+    for letter in range(ord('a'), ord('z') + 1):
         c = chr(letter)
         acc = []
         while len(sorted_matches) > 0 and sorted_matches[0][0] == c:
@@ -32,7 +32,7 @@ def print_low_3s(wl: Wordlist):
         print()
 
 def v(word):
-    mid = len(word)//2
+    mid = len(word) // 2
     first = word[:mid]
     last = word[mid:]
     distance = Levenshtein.distance(first, last)
@@ -47,7 +47,7 @@ def print_almost_matching_halves(wl: Wordlist):
 # yada yada
 def print_matching_halves(wl: Wordlist):
     def match_fn(word):
-        mid = len(word)//2
+        mid = len(word) // 2
         first = word[:mid]
         last = word[mid:]
         return first == last
@@ -58,9 +58,9 @@ def print_matching_halves(wl: Wordlist):
     print('\n'.join(ws))
 
 def list_clubs(wl: Wordlist):
-    words = ["book", "comedy", "country", "glee", "rotary", "sierra", "auto", "booster",
-    "diners", "drama", "fan", "fight", "french", "golf", "kennel", "lions", "night",
-    "strip", "wine", "beach"]
+    words = ["book", "comedy", "country", "glee", "rotary", "sierra", "auto",
+             "booster", "diners", "drama", "fan", "fight", "french", "golf",
+             "kennel", "lions", "night", "strip", "wine", "beach"]
 
     for w in words:
         print(w)
@@ -150,6 +150,6 @@ if __name__ == '__main__':
     wl = Wordlist()
     wl.load('../gh/wordlist/')
 
-    #print_matching_halves(wl)
-    #print_upside_downs(wl)
-    #just_add_water(wl)
+    # print_matching_halves(wl)
+    # print_upside_downs(wl)
+    # just_add_water(wl)

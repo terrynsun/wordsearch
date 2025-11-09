@@ -53,7 +53,7 @@ class Shell(cmd.Cmd):
     def precmd(self, line: str):
         return line
 
-def main(args):
+def main(args: list[str]):
     wl = Wordlist()
     wl.load(args)
 

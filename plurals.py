@@ -11,6 +11,7 @@ from wordlist import Wordlist
 def find_missing_plurals():
     full_wordlist = Wordlist()
     full_wordlist.load('../gh/wordlist/000_peter_broda_full.txt')
+    full_wordlist.load('../gh/wordlist/01_XwiWordList.txt')
 
     stwl = Wordlist()
     stwl.load('../gh/wordlist/00_spreadthewordlist.txt')
