@@ -9,7 +9,7 @@ import util
 from util import Color
 
 def print_low_3s(wl: Wordlist):
-    matches = wl.search_regex('...', 0)
+    matches = wl.search_regex('...', 0, 40)
 
     sorted_matches = sorted(list(matches.keys()))
 

@@ -116,25 +116,6 @@ class Wordlist():
 
             print()
 
-    def list_3s(self) -> None:
-        matches = self.search_regex("...", 50)
-
-        sorted_matches = sorted(list(matches.keys()))
-
-        # remove words that don't start with letters
-        while sorted_matches[0][0] != 'a':
-            sorted_matches.pop(0)
-
-        # split by first letter
-        for letter in range(ord('a'), ord('z') + 1):
-            c = chr(letter)
-            acc = []
-            while len(sorted_matches) > 0 and sorted_matches[0][0] == c:
-                acc.append(sorted_matches.pop(0))
-
-            util.tableize(None, acc, columns=8)
-            print()
-
     def score(self, word: str, score_minimum: int = 0) -> tuple[bool, int]:
         """Return whether a word exists, and its score.
 
@@ -288,16 +269,18 @@ class Wordlist():
 
         return results
 
-    def search_regex(self, regex: str, score_minimum: int = 40)
+    def search_regex(self, regex: str, score_minimum: int = 40,
+                     score_maximum: int | None = None)
     -> dict[str, int]:
         compiled_regex = re.compile(regex)
 
         matches = self.search(lambda x: compiled_regex.fullmatch(x),
-                              score_minimum)
+                              score_minimum, score_maximum)
 
         return matches
 
-    def search_substring(self, word: str, score_minimum: int = 40)
+    def search_substring(self, word: str, score_minimum: int = 40,
+                         score_maximum: int | None = None)
     -> dict[str, int]:
         matches = self.search(lambda x: word in x, score_minimum)
 
