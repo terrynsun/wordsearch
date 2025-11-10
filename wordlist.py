@@ -7,6 +7,7 @@ from pathlib import Path
 import util
 from util import Color
 
+
 class Wordlist():
     # PUBLIC INTERFACE #
     ####################
@@ -24,7 +25,7 @@ class Wordlist():
         self.filelist: list[str] = []
 
     # Loads a list of files (i.e. from command line invocation)
-    def load(self, files):
+    def load(self, files: list[str]) -> None:
         if type(files) is list:
             for file in files:
                 self.load_single_path(file)
@@ -40,7 +41,7 @@ class Wordlist():
 
         print('', file=sys.stderr)
 
-    def ignore(self, filename):
+    def ignore(self, filename: str) -> None:
         if filename in self.filelist:
             self.filelist.remove(filename)
 
@@ -73,12 +74,10 @@ class Wordlist():
 
     SPLIT_ASCII_WORDS = re.compile(r'\W')
 
-    def query_regex(self, regex: str, score_minimum: int = 40):
-        """Regex search using Python's regex search engine"""
-        compiled_regex = re.compile(regex)
-        regex_match_fn = lambda x: compiled_regex.fullmatch(x)
-
-        matches = self.search(regex_match_fn, score_minimum)
+    def query_regex(self, regex: str, score_minimum: int = 40) -> None:
+        """Regex search using Python's regex search engine, and print results to
+        terminal."""
+        matches = self.search_regex(regex, score_minimum)
         if len(matches) == 0:
             return
 
@@ -88,7 +87,7 @@ class Wordlist():
 
         util.tableize(highlights, list(long_matches))
 
-    def query_sandwich(self, word: str, score_minimum: int = 40):
+    def query_sandwich(self, word: str, score_minimum: int = 40) -> None:
         if len(word) < 2:
             print("need at least two characters to query sandwich")
             return
@@ -98,12 +97,9 @@ class Wordlist():
 
         for i in range(1, len(word)):
             prefix, suffix = word[:i], word[i:]
-            regex = f"{prefix}.+{suffix}"
+            regex_str = f"{prefix}.+{suffix}"
 
-            compiled_regex = re.compile(regex)
-            regex_match_fn = lambda x: compiled_regex.fullmatch(x)
-
-            matches = self.search(regex_match_fn, score_minimum).keys()
+            matches = self.search_regex(regex_str, score_minimum).keys()
 
             # remove result if it contains the original word
             filtered_words = [x for x in matches
@@ -120,11 +116,8 @@ class Wordlist():
 
             print()
 
-    def list_3s(self):
-        compiled_regex = re.compile("...")
-        regex_match_fn = lambda x: compiled_regex.fullmatch(x)
-
-        matches = self.search(regex_match_fn, 50)
+    def list_3s(self) -> None:
+        matches = self.search_regex("...", 50)
 
         sorted_matches = sorted(list(matches.keys()))
 
@@ -142,7 +135,7 @@ class Wordlist():
             util.tableize(None, acc, columns=8)
             print()
 
-    def score(self, word: str, score_minimum=0):
+    def score(self, word: str, score_minimum: int = 0) -> tuple[bool, int]:
         """Return whether a word exists, and its score.
 
         Used for wordlist comparison/plural generation."""
@@ -157,7 +150,7 @@ class Wordlist():
 
         return contains, max_score
 
-    def explain(self, word):
+    def explain(self, word: str) -> None:
         """Print a couple links so you can look up the word easily."""
         util.display_word(word, True)
 
@@ -207,12 +200,16 @@ class Wordlist():
 
         # Too many words, just report number of matches.
         if max_result_count and len(matches) > max_result_count:
-            print(f"\n& omitting {len(matches)} other words with {Color.green(original_word)} as substring ({score_minimum}+)")
+            print(f"\n& omitting {len(matches)} other words with "
+                  f"{Color.green(original_word)} as substring "
+                  f"({score_minimum}+)")
             return
 
         # Prints table of matching words
         if len(matches) > 10:
-            print(f"\n& found {len(matches)} other words with {Color.green(original_word)} as substring ({score_minimum}+):")
+            print(f"\n& found {len(matches)} other words with "
+                  f"{Color.green(original_word)} as substring "
+                  f"({score_minimum}+):")
             util.tableize(original_word, list(matches.keys()))
             return
 
@@ -222,12 +219,14 @@ class Wordlist():
         # Extended results (prints the score as well)
         results = sorted(matches.items(), key=lambda x: (x[1], x[0]))
         for match, score in results:
-            print(f"{score} {Color.highlight(match, original_word, Color.YELLOW)} ({len(match)})")
+            print(f"{score} "
+                  f"{Color.highlight(match, original_word, Color.YELLOW)} "
+                  f"({len(match)})")
 
     # FILE MANAGEMENT #
     ###################
     @staticmethod
-    def parse_wordlist_file(path):
+    def parse_wordlist_file(path: Path) -> tuple[str, dict[str, int]]:
         name = path.parts[-1]
 
         words = {}
@@ -254,7 +253,7 @@ class Wordlist():
     # This can follow a directory one level down and parse its files. It loads
     # one path, which can be a directory or a single file. But it doesn't
     # recurse more than once.
-    def load_single_path(self, path):
+    def load_single_path(self, path: str) -> None:
         file = Path(path)
 
         if file.is_file():
@@ -275,7 +274,8 @@ class Wordlist():
     # SEARCHING #
     #############
     # TODO unused variable, lint check
-    def match_exact(self, word: str, original=False) -> list[tuple[int, str]]:
+    def match_exact(self, word: str, original: bool = False)
+    -> list[tuple[int, str]]:
         """For a single word, return every list it's in and its score."""
         # [ (score, filename) ]
         results: list[tuple[int, str]] = []
@@ -288,10 +288,18 @@ class Wordlist():
 
         return results
 
-    def search_substring(self, word: str, score_minimum: int = 40) -> dict[str, int]:
-        substring_match_fn = lambda x: word in x
+    def search_regex(self, regex: str, score_minimum: int = 40)
+    -> dict[str, int]:
+        compiled_regex = re.compile(regex)
 
-        matches = self.search(substring_match_fn, score_minimum)
+        matches = self.search(lambda x: compiled_regex.fullmatch(x),
+                              score_minimum)
+
+        return matches
+
+    def search_substring(self, word: str, score_minimum: int = 40)
+    -> dict[str, int]:
+        matches = self.search(lambda x: word in x, score_minimum)
 
         # Remove original word so we don't print it later
         if word in matches:
@@ -300,7 +308,8 @@ class Wordlist():
         return matches
 
     def search(self, match_fn, score_minimum: int = 40,
-               score_maximum: int | None = None) -> dict[str, int]:
+               score_maximum: int | None = None)
+    -> dict[str, int]:
         """Searches all wordlists, using a provided match_fn lambda."""
         matches = {}
 

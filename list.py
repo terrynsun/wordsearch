@@ -9,11 +9,7 @@ import util
 from util import Color
 
 def print_low_3s(wl: Wordlist):
-    compiled_regex = re.compile("...")
-    regex_match_fn = lambda x: compiled_regex.fullmatch(x)
-
-    # matches = self.search(regex_match_fn, 50)
-    matches = wl.low_only_search(regex_match_fn)
+    matches = wl.search_regex('...', 0)
 
     sorted_matches = sorted(list(matches.keys()))
 
@@ -123,10 +119,9 @@ def print_upside_downs(wl: Wordlist):
         print('{} - {}'.format(w, reverse(w)))
 
 def double_cross(wl: Wordlist):
-    compiled_regex = re.compile("sweet.*")
-    regex_match_fn = lambda x: compiled_regex.fullmatch(x)
+    regex_str = "sweet.*"
 
-    matches = wl.search(regex_match_fn, 0)
+    matches = wl.search_regex(regex_str, 0)
     ws = list(matches.keys())
     for w in ws:
         suffix = w[5:]
@@ -136,10 +131,9 @@ def double_cross(wl: Wordlist):
 
 def just_add_water(wl: Wordlist):
     target_word = 'air'
-    compiled_regex = re.compile(".+" + target_word + ".+")
-    regex_match_fn = lambda x: compiled_regex.fullmatch(x)
+    regex_str = ".+" + target_word + ".+"
 
-    matches = wl.search(regex_match_fn, 0)
+    matches = wl.search_regex(regex_str, 0)
     ws = list(matches.keys())
     for w in ws:
         new = w.replace(target_word, '')
