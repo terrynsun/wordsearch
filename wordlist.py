@@ -6,6 +6,7 @@ from pathlib import Path
 
 import util
 from util import Color
+from typing import Callable
 
 
 class Wordlist():
@@ -56,7 +57,7 @@ class Wordlist():
         normalized_word = util.normalize(word)
 
         # Prints matching wordlists, and scores.
-        results = self.match_exact(normalized_word, True)
+        results = self.match_exact(normalized_word)
         self.print_wordlist_matches(word, results)
 
         # Prints entries as a table.
@@ -74,14 +75,16 @@ class Wordlist():
 
     SPLIT_ASCII_WORDS = re.compile(r'\W')
 
-    def query_regex(self, regex: str, score_minimum: int = 40) -> None:
+    def query_regex(self, regex: str, score_minimum: int = 40
+                    ) -> None:
         """Regex search using Python's regex search engine, and print results to
         terminal."""
         matches = self.search_regex(regex, score_minimum)
         if len(matches) == 0:
             return
 
-        long_matches = filter(lambda word: len(word) > 8 and len(word) < 15, matches)
+        long_matches = filter(
+            lambda word: len(word) > 8 and len(word) < 15, matches)
 
         highlights = self.SPLIT_ASCII_WORDS.split(regex)
 
@@ -110,6 +113,7 @@ class Wordlist():
             if len(filtered_words) == 0:
                 continue
 
+            print(prefix, '-', suffix)
             filtered_words.sort(key=lambda x: len(x))
 
             util.tableize([prefix, suffix], list(filtered_words))
@@ -146,16 +150,15 @@ class Wordlist():
     # OUTPUT #
     ##########
     def print_wordlist_matches(self, word: str,
-                               results: list[tuple[int, str]],
-                               bold: bool = False) -> None:
+                               results: list[tuple[int, str]]) -> None:
         # - Prints word in red if not found, teal if found.
         # - Highest precedence is printed last. Overwritten word lists are
         # printed in grey.
         if len(results) == 0:
-            util.display_word(word, bold, Color.RED)
+            util.display_word(word, True, Color.RED)
             return
 
-        util.display_word(word, bold, Color.CYAN)
+        util.display_word(word, True, Color.CYAN)
 
         # Grey for overwritten lists
         for (score, file) in results[:-1]:
@@ -254,9 +257,7 @@ class Wordlist():
 
     # SEARCHING #
     #############
-    # TODO unused variable, lint check
-    def match_exact(self, word: str, original: bool = False)
-    -> list[tuple[int, str]]:
+    def match_exact(self, word: str) -> list[tuple[int, str]]:
         """For a single word, return every list it's in and its score."""
         # [ (score, filename) ]
         results: list[tuple[int, str]] = []
@@ -269,9 +270,11 @@ class Wordlist():
 
         return results
 
-    def search_regex(self, regex: str, score_minimum: int = 40,
-                     score_maximum: int | None = None)
-    -> dict[str, int]:
+    def search_regex(self,
+                     regex: str,
+                     score_minimum: int = 40,
+                     score_maximum: int | None = None
+                     ) -> dict[str, int]:
         compiled_regex = re.compile(regex)
 
         matches = self.search(lambda x: compiled_regex.fullmatch(x),
@@ -279,9 +282,11 @@ class Wordlist():
 
         return matches
 
-    def search_substring(self, word: str, score_minimum: int = 40,
-                         score_maximum: int | None = None)
-    -> dict[str, int]:
+    def search_substring(self,
+                         word: str,
+                         score_minimum: int = 40,
+                         score_maximum: int | None = None
+                         ) -> dict[str, int]:
         matches = self.search(lambda x: word in x, score_minimum)
 
         # Remove original word so we don't print it later
@@ -290,9 +295,11 @@ class Wordlist():
 
         return matches
 
-    def search(self, match_fn, score_minimum: int = 40,
-               score_maximum: int | None = None)
-    -> dict[str, int]:
+    def search(self,
+               match_fn: Callable[[str], bool],
+               score_minimum: int = 40,
+               score_maximum: int | None = None
+               ) -> dict[str, int]:
         """Searches all wordlists, using a provided match_fn lambda."""
         matches = {}
 

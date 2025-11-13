@@ -8,7 +8,7 @@ from wordlist import Wordlist
 import util
 from util import Color
 
-def print_low_3s(wl: Wordlist):
+def print_low_3s(wl: Wordlist) -> None:
     matches = wl.search_regex('...', 0, 40)
 
     sorted_matches = sorted(list(matches.keys()))
@@ -27,7 +27,7 @@ def print_low_3s(wl: Wordlist):
         util.tableize(None, acc, columns=8)
         print()
 
-def v(word):
+def v(word) -> None:
     mid = len(word) // 2
     first = word[:mid]
     last = word[mid:]
@@ -35,13 +35,13 @@ def v(word):
     return distance == 1 and len(word) > 8
 
 # Dilly dally, willy nilly
-def print_almost_matching_halves(wl: Wordlist):
+def print_almost_matching_halves(wl: Wordlist) -> None:
     matches = wl.search(v, 50)
     ws = list(matches.keys())
     print('\n'.join(ws))
 
 # yada yada
-def print_matching_halves(wl: Wordlist):
+def print_matching_halves(wl: Wordlist) -> None:
     def match_fn(word):
         mid = len(word) // 2
         first = word[:mid]
@@ -53,7 +53,7 @@ def print_matching_halves(wl: Wordlist):
     ws = sorted(ws, key=lambda x: len(x))
     print('\n'.join(ws))
 
-def list_clubs(wl: Wordlist):
+def list_clubs(wl: Wordlist) -> None:
     words = ["book", "comedy", "country", "glee", "rotary", "sierra", "auto",
              "booster", "diners", "drama", "fan", "fight", "french", "golf",
              "kennel", "lions", "night", "strip", "wine", "beach"]
@@ -67,7 +67,7 @@ def list_clubs(wl: Wordlist):
 
         print()
 
-def list_t_to_dos(wl: Wordlist):
+def list_t_to_dos(wl: Wordlist) -> None:
     def match_fn(word):
         if 'b' in word:
             new_word = word.replace('b', 'd')
@@ -78,7 +78,7 @@ def list_t_to_dos(wl: Wordlist):
     ws = sorted(ws, key=lambda x: len(x))
     print('\n'.join(ws))
 
-def print_upside_downs(wl: Wordlist):
+def print_upside_downs(wl: Wordlist) -> None:
     upside_down_dict = {
         's': 's',
         'i': 'i',
@@ -118,7 +118,7 @@ def print_upside_downs(wl: Wordlist):
     for w in ws:
         print('{} - {}'.format(w, reverse(w)))
 
-def double_cross(wl: Wordlist):
+def double_cross(wl: Wordlist) -> None:
     regex_str = "sweet.*"
 
     matches = wl.search_regex(regex_str, 0)
@@ -129,7 +129,7 @@ def double_cross(wl: Wordlist):
         if wl.contains(double_word):
             print(w, double_word)
 
-def just_add_water(wl: Wordlist):
+def just_add_water(wl: Wordlist) -> None:
     target_word = 'air'
     regex_str = ".+" + target_word + ".+"
 
