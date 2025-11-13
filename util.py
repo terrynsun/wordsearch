@@ -6,7 +6,8 @@ def normalize(word: str):
 
 # Print word and its length with optional coloring(s).
 def display_word(word: str, bold=False, color=None):
-    s = f"{word} ({len(word)})"
+    normalized_word = normalize(word)
+    s = f"{normalized_word} ({len(normalized_word)})"
 
     colors = []
     if bold:
