@@ -2,8 +2,6 @@
 
 import Levenshtein
 
-import re
-
 from wordlist import Wordlist
 import util
 from util import Color
@@ -27,7 +25,7 @@ def print_low_3s(wl: Wordlist) -> None:
         util.tableize(None, acc, columns=8)
         print()
 
-def v(word) -> None:
+def v(word: str) -> bool:
     mid = len(word) // 2
     first = word[:mid]
     last = word[mid:]
@@ -147,3 +145,4 @@ if __name__ == '__main__':
     # print_matching_halves(wl)
     # print_upside_downs(wl)
     # just_add_water(wl)
+    wl.query_sandwich('slack')
