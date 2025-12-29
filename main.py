@@ -19,7 +19,14 @@ class Shell(cmd.Cmd):
         '''
         Enter a bare word to do a basic query, with full match and substring
         search.
+
+        If this contains a wildcard (period), guess that it should be a regex
+        search.
         '''
+
+        if '.' in arg:
+            return self.do_r(arg)
+
         self.wordlist.query(arg)
 
     def do_e(self, arg: str) -> None:
