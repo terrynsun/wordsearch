@@ -3,10 +3,13 @@ import os
 
 import sys
 from pathlib import Path
+from collections import defaultdict
 
 import util
 from util import Color
+
 from typing import Callable
+from typing import DefaultDict
 
 
 class Wordlist():
@@ -75,7 +78,10 @@ class Wordlist():
 
     SPLIT_ASCII_WORDS = re.compile(r'\W')
 
-    def query_regex(self, regex: str, score_minimum: int = 40
+    def query_regex(self, regex: str,
+                    score_minimum: int = 40,
+                    len_min: int | None = None,
+                    len_max: int | None = None,
                     ) -> None:
         """Regex search using Python's regex search engine, and print results to
         terminal."""
@@ -85,7 +91,21 @@ class Wordlist():
 
         highlights = self.SPLIT_ASCII_WORDS.split(regex)
 
-        util.tableize(highlights, list(matches))
+        words_by_length: DefaultDict[int, list[str]] = defaultdict(list)
+        for word in matches:
+            words_by_length[len(word)].append(word)
+
+        for length in sorted(words_by_length.keys()):
+            if len_min and length > len_min:
+                pass
+
+            if len_max and length < len_max:
+                pass
+
+            words = words_by_length[length]
+            print(length)
+            util.tableize(highlights, list(words))
+            print()
 
     def query_sandwich(self, word: str, score_minimum: int = 40) -> None:
         if len(word) < 2:
