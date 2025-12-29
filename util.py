@@ -1,5 +1,13 @@
-# Normalize words, i.e. lowercase and strip spaces.
 from typing import Any
+import re
+from typing import Callable
+
+def regex_match_bool(regex_str: str) -> Callable[[str], bool]:
+    compiled_regex = re.compile(regex_str)
+
+    return lambda s: compiled_regex.fullmatch(s) is not None
+
+# Normalize words, i.e. lowercase and strip spaces.
 def normalize(word: str) -> str:
     word = word.lower()
     word = word.replace(' ', '')

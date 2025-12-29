@@ -117,16 +117,28 @@ class Wordlist():
 
             print()
 
+    def contains(self, word: str, score_minimum: int = 0) -> bool:
+        """Return whether a word exists."""
+        contains, _ = self.score(word, score_minimum)
+
+        return contains
+
     def score(self, word: str, score_minimum: int = 0) -> tuple[bool, int]:
         """Return whether a word exists, and its score.
 
-        Used for wordlist comparison/plural generation."""
+        Used for wordlist comparison/plural generation.
+
+        This usually returns the highest score. However, 0 is a special case,
+        where we'll ignore the word instead (returning False and 0)."""
         max_score = 0
         contains = False
 
         for file in self.filelist:
             filelist = self.data[file]
             if word in filelist and filelist[word] >= score_minimum:
+                if filelist[word] == 0:
+                    return False, 0
+
                 max_score = filelist[word]
                 contains = True
 
@@ -273,9 +285,7 @@ class Wordlist():
                      score_minimum: int = 40,
                      score_maximum: int | None = None
                      ) -> dict[str, int]:
-        compiled_regex = re.compile(regex)
-
-        matches = self.search(lambda x: compiled_regex.fullmatch(x),
+        matches = self.search(util.regex_match_bool(regex),
                               score_minimum, score_maximum)
 
         return matches
