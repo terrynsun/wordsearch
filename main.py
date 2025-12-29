@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
+import re
+
 import cmd
 
 from wordlist import Wordlist
@@ -10,6 +12,9 @@ class Shell(cmd.Cmd):
     intro = 'Welcome.'
     prompt = Color.blue(Color.bold('»»» '))
     file = None
+
+    len_regex = re.compile('[0-9]+-[0-9]+')
+    score_regex = re.compile('[0-9]+\\+')
 
     def __init__(self, wordlist: Wordlist):
         self.wordlist = wordlist
@@ -39,8 +44,25 @@ class Shell(cmd.Cmd):
         '''
         Run a regex search. In fullmatch mode; use .* at beginning or end to
         allow partial match.
+
+        Regexes are usually for theme searches, so this supports a few options
+        for choosing word length and minimum score.
         '''
-        self.wordlist.query_regex(arg)
+        words: list[str] = arg.split(' ')
+
+        search_term: str = words[0]
+        score_min: int = 40
+        len_min: int = 8
+        len_max: int = 15
+
+        for word in words[1:]:
+            if self.len_regex.fullmatch(word):
+                len_min, len_max = [int(x) for x in word.split('-')]
+
+            if self.score_regex.fullmatch(word):
+                score_min = int(word[:-1])
+
+        self.wordlist.query_regex(search_term, score_min, len_min, len_max)
 
     def do_s(self, arg: str) -> None:
         '''

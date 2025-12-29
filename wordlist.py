@@ -95,16 +95,16 @@ class Wordlist():
         for word in matches:
             words_by_length[len(word)].append(word)
 
-        for length in sorted(words_by_length.keys()):
-            if len_min and length > len_min:
-                pass
+        for word_len in sorted(words_by_length.keys()):
+            if len_min and word_len < len_min:
+                continue
 
-            if len_max and length < len_max:
-                pass
+            if len_max and word_len > len_max:
+                continue
 
-            words = words_by_length[length]
-            print(length)
-            util.tableize(highlights, list(words))
+            words = words_by_length[word_len]
+            print(word_len)
+            util.tableize(highlights, sorted(list(words)))
             print()
 
     def query_sandwich(self, word: str, score_minimum: int = 40) -> None:
