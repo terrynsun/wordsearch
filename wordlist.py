@@ -26,8 +26,8 @@ class Wordlist():
         self.filelist: list[str] = []
 
     # Loads a list of files (i.e. from command line invocation)
-    def load(self, files: list[str]) -> None:
-        if type(files) is list:
+    def load(self, files: str | list[str]) -> None:
+        if isinstance(files, list):
             for file in files:
                 self.load_single_path(file)
         else:
@@ -83,12 +83,9 @@ class Wordlist():
         if len(matches) == 0:
             return
 
-        long_matches = filter(
-            lambda word: len(word) > 8 and len(word) < 15, matches)
-
         highlights = self.SPLIT_ASCII_WORDS.split(regex)
 
-        util.tableize(highlights, list(long_matches))
+        util.tableize(highlights, list(matches))
 
     def query_sandwich(self, word: str, score_minimum: int = 40) -> None:
         if len(word) < 2:
@@ -142,7 +139,8 @@ class Wordlist():
         word = word.replace(' ', '+')
 
         print(f"- https://www.google.com/search?q={word}")
-        print(f"- https://en.wikipedia.org/w/index.php?title=Special%3ASearch&search={word}")
+        print("- https://en.wikipedia.org/w/index.php?"
+              f"title=Special%3ASearch&search={word}")
         print(f"- https://www.etymonline.com/word/{word}")
         print(f"- https://www.merriam-webster.com/dictionary/{word}")
         print("- https://www.crosserville.com/search/theme")

@@ -2,8 +2,6 @@
 
 from pluralizer import Pluralizer
 
-import re
-
 from wordlist import Wordlist
 
 # Prints words that are ranked at 50 where plurals are ranked at 40 or less

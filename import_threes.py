@@ -5,10 +5,10 @@ import sys
 
 import util
 
-def output_word(word: str, score: int):
+def output_word(word: str, score: int) -> None:
     print(f"{util.normalize(word)};{score}")
 
-def load_csv(fname: str):
+def load_csv(fname: str) -> None:
     wordlist = {}
 
     with open(fname, newline='') as csvfile:
@@ -29,7 +29,7 @@ def load_csv(fname: str):
     for word, score in sorted(wordlist.items()):
         output_word(word, int(score))
 
-def main(args: list[str]):
+def main(args: list[str]) -> None:
     load_csv(args[0])
 
 if __name__ == "__main__":
