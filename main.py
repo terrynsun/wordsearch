@@ -15,45 +15,40 @@ class Shell(cmd.Cmd):
         self.wordlist = wordlist
         super(Shell, self).__init__()
 
-    def default(self, arg: str):
+    def default(self, arg: str) -> None:
         '''
         Enter a bare word to do a basic query, with full match and substring
         search.
         '''
         self.wordlist.query(arg)
 
-    def do_e(self, arg: str):
+    def do_e(self, arg: str) -> None:
         '''
         Generate a few links to websites for definitions of the word
         '''
         self.wordlist.explain(arg)
 
-    def do_r(self, arg: str):
+    def do_r(self, arg: str) -> None:
         '''
         Run a regex search. In fullmatch mode; use .* at beginning or end to
         allow partial match.
         '''
         self.wordlist.query_regex(arg)
 
-    def do_s(self, arg: str):
+    def do_s(self, arg: str) -> None:
         '''
         Search for surrounds.
         '''
         self.wordlist.query_sandwich(arg)
 
-    def do_list(self, _: str):
-        '''
-        '''
-        self.wordlist.list_3s()
-
-    def do_EOF(self, _: str):
+    def do_EOF(self, _: str) -> bool:
         print()
         return True
 
-    def precmd(self, line: str):
+    def precmd(self, line: str) -> str:
         return line
 
-def main(args: list[str]):
+def main(args: list[str]) -> None:
     wl = Wordlist()
     wl.load(args)
 
