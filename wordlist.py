@@ -91,6 +91,9 @@ class Wordlist():
 
         highlights = self.SPLIT_ASCII_WORDS.split(regex)
 
+        print(f"Found {len(matches)} words with scores >= {score_minimum}")
+        print()
+
         words_by_length: DefaultDict[int, list[str]] = defaultdict(list)
         for word in matches:
             words_by_length[len(word)].append(word)
@@ -103,7 +106,12 @@ class Wordlist():
                 continue
 
             words = words_by_length[word_len]
-            print(word_len)
+            if not words:
+                continue
+
+            header = f"-- {str(word_len)} --"
+            print(Color.fmt(header, Color.BOLD, Color.CYAN))
+
             util.tableize(highlights, sorted(list(words)))
             print()
 
