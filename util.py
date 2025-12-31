@@ -29,13 +29,25 @@ def display_word(word: str, bold: bool = False, color: int | None = None
     print(Color.fmt(s, *colors))
 
 # Print a result from a wordlist, i.e. score and filename pair.
-def print_result(score: int, filename: str, color: int = None) -> None:
+def print_result(score: int, filename: str, color: int | None = None) -> None:
     print(Color.fmt(f"{score:2d}: {filename}", color))
 
-# https://stackoverflow.com/a/2135920
-def split_array(a: list[Any], n: int) -> list[Any]:
+def split_array(a: list[Any], n: int) -> list[list[Any]]:
     k, m = divmod(len(a), n)
-    return [a[i * k + min(i, m):(i + 1) * k | min(i + 1, m)] for i in range(n)]
+    cur = 0
+    ret: list[list[Any]] = []
+
+    for i in range(n):
+        row = a[cur:cur + k]
+        cur += k
+
+        if i < m:
+            row.append(a[cur])
+            cur += 1
+
+        ret.append(row)
+
+    return ret
 
 # Print a list of words in columns
 def tableize(highlight_word: str | list | None, matches: list[str],
