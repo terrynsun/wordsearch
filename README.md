@@ -5,6 +5,11 @@ go.
 
 ## Todo
 
+Bugs:
+- Highlight should use a regex w/ captures. Right now it doesn't take into
+    account order, and can accidentally highlight the `m` added by the color
+    codes.
+
 Behavior:
 - Fix ^C behavior: https://stackoverflow.com/a/37380019
 

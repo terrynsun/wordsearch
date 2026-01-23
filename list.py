@@ -79,6 +79,17 @@ def list_clubs(wl: Wordlist) -> None:
 
         print()
 
+def list_kids(wl: Wordlist) -> None:
+    words = ['kid', 'pup']
+
+    # No results: foal, colt
+
+    for w in words:
+        print(w)
+        re = f'.+{w}.+'
+        wl.query_regex(re, 50, 8, 15)
+        print()
+
 def list_t_to_dos(wl: Wordlist) -> None:
     def match_fn(word: str) -> bool:
         if 'b' in word:
@@ -182,7 +193,7 @@ def hotandsour(wl: Wordlist, w1: str, w2: str) -> None:
                 words.append((w1_word, w2_word, new_word, len(new_word)))
 
     words.sort(key=lambda t: len(t[2]))
-    print('\n'.join([f'{t[3]} {t[2]}\t// {w1} {t[0]} + {w2} {t[1]}'
+    print('\n'.join([f'{t[3]} {t[2]}\t{w1} {t[0]}\t{w2} {t[1]}'
                      for t in words]))
 
 def eggdrop(wl: Wordlist) -> None:
@@ -196,8 +207,9 @@ def eggdrop(wl: Wordlist) -> None:
 if __name__ == '__main__':
     wl = Wordlist()
     wl.load('../gh/wordlist/')
-    wl.query_sandwich('open')
-    # list_screens(wl)
+    wl.ignore('000_peter_broda_full.txt')
+    # wl.query_falling('flat', 50, 8, 15)
+    #list_kids(wl)
 
-    # hotandsour(wl, 'hot', 'sour')
+    hotandsour(wl, 'wild', 'wild')
     # hotandsour(wl, 'thick', 'thin')

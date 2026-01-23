@@ -68,7 +68,7 @@ def tableize(highlight_word: str | list | None, matches: list[str],
     wordlengths = [[len(x) for x in col] for col in columns]
     col_lengths = [max(x) + 2 for x in wordlengths if len(x) > 0]
 
-    # Pad to column len & color original word
+    # Pad to column len & color highlights
     def tablefmt(word: str, col_len: int) -> str:
         padded_word = str.ljust(word, col_len)
         return Color.highlight_many(padded_word, to_highlight, Color.YELLOW)
@@ -101,7 +101,7 @@ class Color:
     RESET = '\033[0m'
 
     @staticmethod
-    def fmt(s: str, *args: int) -> str:
+    def fmt(s: str, *args: int | None) -> str:
         if len(args) == 0 or args[0] is None:
             return s
 

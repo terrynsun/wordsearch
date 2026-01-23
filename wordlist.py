@@ -112,7 +112,57 @@ class Wordlist():
             header = f"-- {str(word_len)} --"
             print(Color.fmt(header, Color.BOLD, Color.CYAN))
 
+            print(sorted(list(words)))
             util.tableize(highlights, sorted(list(words)))
+            print()
+
+    def query_falling(self, substr: str,
+                      score_minimum: int = 40,
+                      len_min: int | None = None,
+                      len_max: int | None = None,
+                      ) -> None:
+        """Search for entries containing a certain substring, then output sorted
+        by how far into the word they appear."""
+        regex = f".+{substr}.+"
+        matches = self.search_regex(regex, score_minimum)
+        if len(matches) == 0:
+            return
+
+        highlights = [substr]
+
+        print(f"Found {len(matches)} words with scores >= {score_minimum}")
+        print()
+
+        words_by_length: DefaultDict[int, list[str]] = defaultdict(list)
+        for word in matches:
+            key = word.index(substr)
+            words_by_length[key].append(word)
+
+        for word_pos in sorted(words_by_length.keys()):
+            def word_in_range(w: str) -> bool:
+                if len_min and len(w) < len_min:
+                    return False
+
+                if len_max and len(w) > len_max:
+                    return False
+
+                if 'eggs' in w:
+                    return False
+
+                return True
+
+            words = words_by_length[word_pos]
+            words_filtered_by_len = list(filter(word_in_range, words))
+            if not words_filtered_by_len:
+                continue
+
+            header = f"-- {str(word_pos)} --"
+            print(Color.fmt(header, Color.BOLD, Color.CYAN))
+
+            words_filtered_by_len.sort(key=lambda w: (len(w), w))
+            words_with_len = [f"{Color.fmt(str(len(w)), Color.GREY)} {w}"
+                              for w in words_filtered_by_len]
+            util.tableize(highlights, words_with_len)
             print()
 
     def query_sandwich(self, word: str, score_minimum: int = 40) -> None:

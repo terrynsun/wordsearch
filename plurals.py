@@ -5,7 +5,7 @@ from pluralizer import Pluralizer
 from wordlist import Wordlist
 
 # Prints words that are ranked at 50 where plurals are ranked at 40 or less
-# STWL only right no
+# STWL only right now
 def find_missing_plurals():
     full_wordlist = Wordlist()
     full_wordlist.load('../gh/wordlist/000_peter_broda_full.txt')
