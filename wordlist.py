@@ -112,7 +112,6 @@ class Wordlist():
             header = f"-- {str(word_len)} --"
             print(Color.fmt(header, Color.BOLD, Color.CYAN))
 
-            print(sorted(list(words)))
             util.tableize(highlights, sorted(list(words)))
             print()
 
@@ -165,23 +164,38 @@ class Wordlist():
             util.tableize(highlights, words_with_len)
             print()
 
-    def query_sandwich(self, word: str, score_minimum: int = 40) -> None:
-        if len(word) < 2:
+    def query_sandwich(self, search_term: str, score_minimum: int = 40) -> None:
+        if len(search_term) < 2:
             print("need at least two characters to query sandwich")
             return
 
         # track seen words so we don't report them repeatedly
         seen: set[str] = set()
 
-        for i in range(1, len(word)):
-            prefix, suffix = word[:i], word[i:]
+        # Report which words are found twice. These are "ambiguous splits" and
+        # probably frowned upon.
+        dupes: set[str] = set()
+        # Report words that contain the search term, which is probably
+        # inelegant.
+        contains_orig: set[str] = set()
+
+        for i in range(1, len(search_term)):
+            prefix, suffix = search_term[:i], search_term[i:]
             regex_str = f"{prefix}.+{suffix}"
 
             matches = self.search_regex(regex_str, score_minimum).keys()
 
-            # remove result if it contains the original word
-            filtered_words = [x for x in matches
-                              if word not in x and x not in seen]
+            filtered_words = []
+            for matched_word in matches:
+                if search_term in matched_word:
+                    contains_orig.add(matched_word)
+                    continue
+
+                if matched_word in seen:
+                    dupes.add(matched_word)
+                    continue
+
+                filtered_words.append(matched_word)
 
             seen.update(matches)
 
@@ -191,9 +205,21 @@ class Wordlist():
             print(prefix, '-', suffix)
             filtered_words.sort(key=lambda x: len(x))
 
-            util.tableize([prefix, suffix], list(filtered_words))
+            words_with_len = [f"{Color.fmt(str(len(w)), Color.GREY)} {w}"
+                              for w in filtered_words]
+            util.tableize([prefix, suffix], list(words_with_len))
 
             print()
+
+        if dupes:
+            print(f"Also, {len(dupes)} words were seen more than once"
+                  '(so they have ambiguous splits?')
+            util.tableize(list(dupes), [])
+
+        if contains_orig:
+            print(f"Also, {len(contains_orig)} words were skipped because they "
+                  'contain the search term:')
+            util.tableize(search_term, list(contains_orig))
 
     def contains(self, word: str, score_minimum: int = 0) -> bool:
         """Return whether a word exists."""
